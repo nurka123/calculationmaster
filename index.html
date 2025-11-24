@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Budget Cards</title>
+    <style>
+        /* 1. Настройка шрифтов и фона */
+        body {
+            margin: 0;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background-color: #0f0c29;
+            background: linear-gradient(to right, #24243e, #302b63, #0f0c29);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* 2. Экран ввода */
+        .input-container {
+            text-align: center;
+            transition: all 0.5s ease;
+            margin-bottom: 20px;
+            z-index: 10;
+        }
+
+        h1 {
+            font-weight: 200;
+            letter-spacing: 2px;
+            margin-bottom: 40px;
+            opacity: 0.8;
+        }
+
+        /* Поле ввода */
+        input {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 40px;
+            text-align: center;
+            width: 350px; /* Чуть шире, чтобы влезли пробелы */
+            padding: 10px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            border-color: #00d2ff;
+        }
+
+        /* Кнопка */
+        button {
+            margin-top: 30px;
+            padding: 15px 40px;
+            font-size: 18px;
+            background: linear-gradient(45deg, #00d2ff, #3a7bd5);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 210, 255, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(0, 210, 255, 0.6);
+        }
+
+        /* 3. Контейнер для карт */
+        .cards-container {
+            display: none;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+            padding: 20px;
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 4. Дизайн Карточек */
+        .card {
+            width: 280px;
+            height: 170px;
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+
+        .bg-self { background: linear-gradient(135deg, #c33764, #1d2671); }
+        .bg-wants { background: linear-gradient(135deg, #f12711, #f5af19); }
+        .bg-invest { background: linear-gradient(135deg, #00c6ff, #0072ff); }
+        .bg-parents { background: linear-gradient(135deg, #11998e, #38ef7d); }
+
+        .card-header {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+        }
+
+        .card-percent {
+            font-size: 12px;
+            background: rgba(0,0,0,0.2);
+            padding: 4px 8px;
+            border-radius: 10px;
+            width: fit-content;
+            margin-top: 5px;
+        }
+
+        .card-amount {
+            font-size: 32px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .currency {
+            font-size: 20px;
+            font-weight: normal;
+        }
+
+        .reset-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            margin-top: 30px;
+            box-shadow: none;
+        }
+        .reset-btn:hover {
+            background: rgba(255,255,255,0.1);
+            box-shadow: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="input-container" id="inputScreen">
+        <h1>ВВЕДИТЕ СУММУ</h1>
+        <input type="text" id="totalInput" placeholder="0" autocomplete="off">
+        <br>
+        <button onclick="calculateAndShow()">РАССЧИТАТЬ</button>
+    </div>
+
+    <div class="cards-container" id="resultScreen">
+        
+        <div class="card bg-self">
+            <div>
+                <div class="card-header">На себя</div>
+                <div class="card-percent">60%</div>
+            </div>
+            <div class="card-amount"><span id="val-self">0</span> <span class="currency">₸</span></div>
+        </div>
+
+        <div class="card bg-wants">
+            <div>
+                <div class="card-header">Хотелки</div>
+                <div class="card-percent">15%</div>
+            </div>
+            <div class="card-amount"><span id="val-wants">0</span> <span class="currency">₸</span></div>
+        </div>
+
+        <div class="card bg-invest">
+            <div>
+                <div class="card-header">Инвестиции</div>
+                <div class="card-percent">15%</div>
+            </div>
+            <div class="card-amount"><span id="val-invest">0</span> <span class="currency">₸</span></div>
+        </div>
+
+        <div class="card bg-parents">
+            <div>
+                <div class="card-header">Родителям</div>
+                <div class="card-percent">10%</div>
+            </div>
+            <div class="card-amount"><span id="val-parents">0</span> <span class="currency">₸</span></div>
+        </div>
+
+        <div style="width: 100%; text-align: center;">
+            <button class="reset-btn" onclick="resetCalculator()">НОВЫЙ РАСЧЕТ</button>
+        </div>
+    </div>
+
+    <script>
+        const inputScreen = document.getElementById('inputScreen');
+        const resultScreen = document.getElementById('resultScreen');
+        const inputField = document.getElementById('totalInput');
+
+        // === 1. ЛОГИКА РАЗДЕЛЕНИЯ ПРОБЕЛАМИ ===
+        inputField.addEventListener('input', function() {
+            // Удаляем всё, кроме цифр (чтобы убрать старые пробелы и буквы)
+            let value = this.value.replace(/\D/g, '');
+            
+            // Добавляем пробелы каждые 3 цифры
+            // Это регулярное выражение (магия программирования)
+            this.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        });
+
+        // === 2. ЛОГИКА РАСЧЕТА ===
+        function calculateAndShow() {
+            // Перед расчетом мы должны удалить пробелы, иначе компьютер не поймет "1 000"
+            // Мы берем текст из поля, удаляем все пробелы (\s) и превращаем в число
+            const rawValue = inputField.value.replace(/\s/g, '');
+            const total = parseFloat(rawValue);
+
+            if (!total) {
+                alert("Пожалуйста, введите сумму!");
+                return;
+            }
+
+            const self = total * 0.60;
+            const wants = total * 0.15;
+            const invest = total * 0.15;
+            const parents = total * 0.10;
+
+            // toLocaleString() сама добавит пробелы в результаты
+            document.getElementById('val-self').innerText = self.toLocaleString();
+            document.getElementById('val-wants').innerText = wants.toLocaleString();
+            document.getElementById('val-invest').innerText = invest.toLocaleString();
+            document.getElementById('val-parents').innerText = parents.toLocaleString();
+
+            inputScreen.style.display = 'none';
+            resultScreen.style.display = 'flex';
+        }
+
+        function resetCalculator() {
+            inputField.value = '';
+            resultScreen.style.display = 'none';
+            inputScreen.style.display = 'block';
+            inputField.focus();
+        }
+
+        inputField.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                calculateAndShow();
+            }
+        });
+    </script>
+
+</body>
+</html>
